@@ -1,0 +1,35 @@
+#include <iostream>
+EXEC SQL INCLUDE SQLCA;
+
+using namespace std;
+
+int main()
+{
+    EXEC SQL WHENEVER SQLERROR GOTO error;
+    EXEC SQL CONNECT TO cs348;
+    cout << "Connected to database." << endl;
+    
+    // Print out a list of publications
+    EXEC SQL BEGIN DECLARE SECTION;
+    char pubid[11];
+    char title[71];
+    EXEC SQL END DECLARE SECTION;
+    
+    EXEC SQL DECLARE C1 CURSOR FOR
+        SELECT pubid, title FROM publication;
+    
+    EXEC SQL OPEN C1;
+    for (;;) {
+        EXEC SQL FETCH C1 INTO :pubid, :title;
+        if (SQLCODE) break;
+        cout << pubid << ' ' << title << endl;
+    }
+    EXEC SQL CLOSE C1;
+    
+    EXEC SQL CONNECT RESET;
+    return 0;
+    
+error:
+    cout << "ERROR! SQLCODE = " << SQLCODE << endl;
+    return -1;
+}
