@@ -1,0 +1,51 @@
+#include "common.h"
+#include <stdio.h>
+#include <string.h>
+
+int main(int argc, char *argv[])
+{
+    if (argc != 2) {
+        printf("Usage: %s \"PubId\"\n", argv[0]);
+        return 0;
+    } else if (strlen(argv[1]) > 10) {
+        printf("The publication id, \"%s\" is too long.\n", argv[1]);
+        return -1;
+    }
+    
+    EXEC SQL BEGIN DECLARE SECTION;
+    char appearsin[11];
+    char pubid[11];
+    EXEC SQL END DECLARE SECTION;
+    
+    int err;
+    
+    if ((err = connect())) goto end;
+    
+    strcpy(appearsin, argv[1]);
+    
+    EXEC SQL DECLARE C_BIBCONTENT CURSOR FOR
+    SELECT pubid
+    FROM article
+    WHERE appearsin = :appearsin
+    ORDER BY startpage ASC;
+    
+    EXEC SQL OPEN C_BIBCONTENT;
+    // Print the first result.
+    EXEC SQL FETCH C_BIBCONTENT INTO :pubid;
+    if ((err = sqlcode())) goto end;
+    if ((err = print(pubid))) goto end;
+    
+    
+    // Print the rest of the results.
+    for (;;) {
+        EXEC SQL FETCH C_BIBCONTENT INTO :pubid;
+        if ((err = sqlcode())) goto end;
+        printf("\n");
+        if ((err = print(pubid))) goto end;
+    }
+    
+    end:
+    EXEC SQL CLOSE C_BIBCONTENT;
+    disconnect();
+    return err;
+}
