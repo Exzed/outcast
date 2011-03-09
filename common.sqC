@@ -22,174 +22,178 @@ int sqlcode()
     return SQLCODE;
 }
 
-EXEC SQL BEGIN DECLARE SECTION;
-static char pubid[11];      // For all publications.
-static char title[71];      // For all publications.
-static long year;           // For proceedings, journals and books.
-static long volume;         // For jounals.
-static long number;         // For proceedings, journals and books.
-static char publisher[51];  // For books.
-static char appearsin[11];  // For articles.
-static long startpage;      // For articles.
-static long endpage;        // For articles.
-static char name[23];       // For authors.
-EXEC SQL END DECLARE SECTION;
-
-static int printId();
+namespace pub {
+    EXEC SQL BEGIN DECLARE SECTION;
+    static char pub_pubid[11];      // For all publications.
+    static char pub_title[71];      // For all publications.
+    static long pub_year;           // For proceedings, journals and books.
+    static long pub_volume;         // For jounals.
+    static long pub_number;         // For proceedings, journals and books.
+    static char pub_publisher[51];  // For books.
+    static char pub_appearsin[11];  // For articles.
+    static long pub_startpage;      // For articles.
+    static long pub_endpage;        // For articles.
+    static char pub_name[23];       // For authors.
+    EXEC SQL END DECLARE SECTION;
+    
+    static int printId();
+}
 
 int print(const char *id)
 {
     if (strlen(id) > 10) return -1;
-    strcpy(pubid, id);
-    return printId();
+    strcpy(pub::pub_pubid, id);
+    return pub::printId();
 }
 
 /*******************************************************************************
  * Static (Private) Functions
  ******************************************************************************/
-
-enum typeId
+namespace pub
 {
-    UNKNOWN = 0,
-    BOOK = 1,
-    JOURNAL = 2,
-    PROCEEDINGS = 3,
-    ARTICLE = 4
-};
+    
+    enum typeId
+    {
+        UNKNOWN = 0,
+        BOOK = 1,
+        JOURNAL = 2,
+        PROCEEDINGS = 3,
+        ARTICLE = 4
+    };
 
-static const char *typeName[] =
-{
-    "unknown",
-    "book",
-    "journal",
-    "proceedings",
-    "article"
-};
+    static const char *typeName[] =
+    {
+        "unknown",
+        "book",
+        "journal",
+        "proceedings",
+        "article"
+    };
 
-static int getTitle()
-{
-    EXEC SQL WHENEVER SQLERROR GOTO end;
-    
-    EXEC SQL
-    SELECT title INTO :title 
-    FROM publication
-    WHERE pubid = :pubid;
-    
-    end:
-    return SQLCODE;
-}
+    static int getTitle()
+    {
+        EXEC SQL WHENEVER SQLERROR GOTO end;
+        
+        EXEC SQL
+        SELECT title INTO :pub_title 
+        FROM publication
+        WHERE pubid = :pub_pubid;
+        
+        end:
+        return SQLCODE;
+    }
 
-static typeId getType()
-{
-    EXEC SQL WHENEVER SQLERROR GOTO error;
-    
-    EXEC SQL
-    SELECT publisher, year
-    INTO :publisher, :year
-    FROM book
-    WHERE pubid = :pubid;
-    
-    if (SQLCODE == 0) return BOOK;
-    
-    EXEC SQL
-    SELECT volume, number, year
-    INTO :volume, :number, :year
-    FROM journal
-    WHERE pubid = :pubid;
-    
-    if (SQLCODE == 0) return JOURNAL;
-    
-    EXEC SQL
-    SELECT year INTO :year
-    FROM proceedings
-    WHERE pubid = :pubid;
-    
-    if (SQLCODE == 0) return PROCEEDINGS;
-    
-    EXEC SQL
-    SELECT appearsin, startpage, endpage
-    INTO :appearsin, :startpage, :endpage
-    FROM article
-    WHERE pubid = :pubid;
-    
-    if (SQLCODE == 0) return ARTICLE;
-    
-    error:
-    return UNKNOWN;
-}
+    static typeId getType()
+    {
+        EXEC SQL WHENEVER SQLERROR GOTO error;
+        
+        EXEC SQL
+        SELECT publisher, year
+        INTO :pub_publisher, :pub_year
+        FROM book
+        WHERE pubid = :pub_pubid;
+        
+        if (SQLCODE == 0) return BOOK;
+        
+        EXEC SQL
+        SELECT volume, number, year
+        INTO :pub_volume, :pub_number, :pub_year
+        FROM journal
+        WHERE pubid = :pub_pubid;
+        
+        if (SQLCODE == 0) return JOURNAL;
+        
+        EXEC SQL
+        SELECT year INTO :pub_year
+        FROM proceedings
+        WHERE pubid = :pub_pubid;
+        
+        if (SQLCODE == 0) return PROCEEDINGS;
+        
+        EXEC SQL
+        SELECT appearsin, startpage, endpage
+        INTO :pub_appearsin, :pub_startpage, :pub_endpage
+        FROM article
+        WHERE pubid = :pub_pubid;
+        
+        if (SQLCODE == 0) return ARTICLE;
+        
+        error:
+        return UNKNOWN;
+    }
 
-static int printAuthors()
-{
-    EXEC SQL WHENEVER SQLERROR GOTO end;
-    
-    EXEC SQL DECLARE C_GETAUTH CURSOR FOR
-    SELECT A.name
-    FROM author A, wrote W
-    WHERE A.aid = W.aid AND W.pubid = :pubid
-    ORDER BY W.aorder ASC;
-    
-    EXEC SQL OPEN C_GETAUTH;
-    
-    // Print the first result.
-    EXEC SQL FETCH C_GETAUTH INTO :name;
-    if (SQLCODE) goto end;
-    printf("%s", name);
-    
-    // Print the rest of the results.
-    for (;;) {
-        EXEC SQL FETCH C_GETAUTH INTO :name;
+    static int printAuthors()
+    {
+        EXEC SQL WHENEVER SQLERROR GOTO end;
+        
+        EXEC SQL DECLARE C_GETAUTH CURSOR FOR
+        SELECT A.name
+        FROM author A, wrote W
+        WHERE A.aid = W.aid AND W.pubid = :pub_pubid
+        ORDER BY W.aorder ASC;
+        
+        EXEC SQL OPEN C_GETAUTH;
+        
+        // Print the first result.
+        EXEC SQL FETCH C_GETAUTH INTO :pub_name;
         if (SQLCODE) goto end;
-        printf(", %s", name);
+        printf("%s", pub_name);
+        
+        // Print the rest of the results.
+        for (;;) {
+            EXEC SQL FETCH C_GETAUTH INTO :pub_name;
+            if (SQLCODE) goto end;
+            printf(", %s", pub_name);
+        }
+        
+        end:
+        EXEC SQL CLOSE C_GETAUTH;
+        if (SQLCODE == 100) return 0;
+        return SQLCODE;
     }
-    
-    end:
-    EXEC SQL CLOSE C_GETAUTH;
-    if (SQLCODE == 100) return 0;
-    return SQLCODE;
-}
 
-static int printId()
-{
-    int err;
-    typeId type;
-    
-    if ((err = getTitle())) goto end;
-    printf("Pubid: %s\n", pubid);
-    
-    type = getType();
-    printf("Type: %s\n", typeName[type]);
-    
-    printf("Authors: ");
-    if ((err = printAuthors())) {
+    static int printId()
+    {
+        int err;
+        typeId type;
+        
+        if ((err = getTitle())) goto end;
+        printf("Pubid: %s\n", pub_pubid);
+        
+        type = getType();
+        printf("Type: %s\n", typeName[type]);
+        
+        printf("Authors: ");
+        if ((err = printAuthors())) {
+            printf("\n");
+            goto end;
+        }
         printf("\n");
-        goto end;
+        
+        printf("Title: %s\n", pub_title);
+        
+        switch (type) {
+            case BOOK:
+                printf("Publisher: %s\nYear: %d\n",
+                    pub_publisher, (int)pub_year);
+                break;
+            case JOURNAL:
+                printf("Volume: %d\nNumber: %d\nYear: %d\n",
+                    (int)pub_volume, (int)pub_number, (int)pub_year);
+                break;
+            case PROCEEDINGS:
+                printf("Year: %d\n", (int)pub_year);
+                break;
+            case ARTICLE:
+                printf("In: %s\nPages: %d--%d\n",
+                    pub_appearsin, (int)pub_startpage, (int)pub_endpage);
+                break;
+            default:
+                break;
+        }
+        
+        end:
+        if (err == 100) return 0;
+        return err;
     }
-    printf("\n");
-    
-    printf("Title: %s\n", title);
-    
-    switch (type) {
-        case BOOK:
-            printf("Publisher: %s\nYear: %d\n",
-                   publisher, (int)year);
-            break;
-        case JOURNAL:
-            printf("Volume: %d\nNumber: %d\nYear: %d\n",
-                   (int)volume, (int)number, (int)year);
-            break;
-        case PROCEEDINGS:
-            printf("Year: %d\n", (int)year);
-            break;
-        case ARTICLE:
-            printf("In: %s\nPages: %d--%d\n",
-                   appearsin, (int)startpage, (int)endpage);
-            break;
-        default:
-            break;
-    }
-    
-    end:
-    if (err == 100) return 0;
-    return err;
 }
-

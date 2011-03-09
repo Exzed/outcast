@@ -13,15 +13,15 @@ int main(int argc, char *argv[])
     }
     
     EXEC SQL BEGIN DECLARE SECTION;
-    char main_name[23];
-    char main_pubid[11];
+    char name[23];
+    char pubid[11];
     EXEC SQL END DECLARE SECTION;
     
     int err;
     
     if ((err = connect())) goto end;
     
-    strcpy(main_name, argv[1]);
+    strcpy(name, argv[1]);
     
     EXEC SQL DECLARE C_BIBAUTHOR CURSOR FOR
     WITH
@@ -29,7 +29,7 @@ int main(int argc, char *argv[])
             ((SELECT W1.pubid, A2.name AS first
              FROM author A1, wrote W1, wrote W2, author A2
              WHERE
-                A1.name = :main_name AND
+                A1.name = :name AND
                 A1.aid = W1.aid AND
                 W1.pubid = W2.pubid AND
                 W2.aorder = 1 AND
@@ -45,24 +45,24 @@ int main(int argc, char *argv[])
                     W2.pubid = R.appearsin) AS first
              FROM author A1, wrote W1, article R
              WHERE
-                A1.name = :main_name AND
+                A1.name = :name AND
                 A1.aid = W1.aid AND
                 W1.pubid = R.pubid))
     SELECT pubid FROM authored ORDER BY first ASC;
     
     EXEC SQL OPEN C_BIBAUTHOR;
     // Print the first result.
-    EXEC SQL FETCH C_BIBAUTHOR INTO :main_pubid;
-    if ((err = SQLCODE)) goto end;
-    if ((err = print(main_pubid))) goto end;
+    EXEC SQL FETCH C_BIBAUTHOR INTO :pubid;
+    if ((err = sqlcode())) goto end;
+    if ((err = print(pubid))) goto end;
     
     
     // Print the rest of the results.
     for (;;) {
-        EXEC SQL FETCH C_BIBAUTHOR INTO :main_pubid;
-        if ((err = SQLCODE)) goto end;
+        EXEC SQL FETCH C_BIBAUTHOR INTO :pubid;
+        if ((err = sqlcode())) goto end;
         printf("\n");
-        if ((err = print(main_pubid))) goto end;
+        if ((err = print(pubid))) goto end;
     }
     
     end:
