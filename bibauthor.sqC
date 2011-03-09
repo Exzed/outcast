@@ -1,35 +1,89 @@
+/* DECLARATIONS */
+
+void connect(int *err = NULL);
+void disconnect(int *err = NULL);
+
+namespace pub
+{
+    void printAll(int *err = NULL);
+}
+
+/* MAIN */
+
 #include <iostream>
 EXEC SQL INCLUDE SQLCA;
 
 using namespace std;
 
-int main()
+int main(int argc, char *argv[])
 {
-    EXEC SQL WHENEVER SQLERROR GOTO error;
-    EXEC SQL CONNECT TO cs348;
-    cout << "Connected to database." << endl;
+    int err = 0;
     
-    // Print out a list of publications
-    EXEC SQL BEGIN DECLARE SECTION;
-    char pubid[11];
-    char title[71];
-    EXEC SQL END DECLARE SECTION;
+    connect(&err);
+    if (err) goto error;
     
-    EXEC SQL DECLARE C1 CURSOR FOR
-        SELECT pubid, title FROM publication;
+    pub::printAll(&err);
+    if (err) goto error;
     
-    EXEC SQL OPEN C1;
-    for (;;) {
-        EXEC SQL FETCH C1 INTO :pubid, :title;
-        if (SQLCODE) break;
-        cout << pubid << ' ' << title << endl;
-    }
-    EXEC SQL CLOSE C1;
+    disconnect(&err);
+    if (err) goto error;
     
-    EXEC SQL CONNECT RESET;
     return 0;
     
 error:
-    cout << "ERROR! SQLCODE = " << SQLCODE << endl;
-    return -1;
+    cout << "ERROR: " << err << endl;
+    return err;
+}
+
+void connect(int *err)
+{
+    EXEC SQL WHENEVER SQLERROR GOTO error;
+    EXEC SQL CONNECT TO cs348;
+    if (err) *err = SQLCODE;
+    return;
+    
+error:
+    if (err) *err = -1;
+    return;
+}
+
+void disconnect(int *err)
+{
+    EXEC SQL WHENEVER SQLERROR GOTO error;
+    EXEC SQL CONNECT RESET;
+    if (err) *err = SQLCODE;
+    return;
+    
+error:
+    if (err) *err = -1;
+    return;
+}
+
+namespace pub
+{
+    EXEC SQL BEGIN DECLARE SECTION;
+    static char pubid[11];
+    static char title[71];
+    EXEC SQL END DECLARE SECTION;
+    
+    EXEC SQL DECLARE C_PRINTALL CURSOR FOR
+        SELECT pubid, title FROM publication;
+
+    void printAll(int *err)
+    {
+        EXEC SQL WHENEVER SQLERROR GOTO error;
+        EXEC SQL OPEN C_PRINTALL;
+        for (;;) {
+            EXEC SQL FETCH C_PRINTALL INTO :pubid, :title;
+            if (SQLCODE) break;
+            cout << pubid << ' ' << title << endl;
+        }
+        EXEC SQL CLOSE C_PRINTALL;
+        if (err) *err = SQLCODE;
+        return;
+        
+    error:
+        if (err) *err = -1;
+        return;
+    }
 }
