@@ -2,7 +2,6 @@
 #define _COMMON_H_
 
 struct sqlca;
-class istream;
 
 /**
  * Connect to the database.
@@ -15,6 +14,12 @@ int connect();
  * @return the error code.
  */
 int disconnect();
+
+/**
+ * Gets the current SQLCODE.
+ * @return the current SQLCODE.
+ */
+int sqlcode();
 
 /**
  * Print a publication by its id.

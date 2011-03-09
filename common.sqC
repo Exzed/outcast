@@ -17,6 +17,11 @@ int disconnect()
     return SQLCODE;
 }
 
+int sqlcode()
+{
+    return SQLCODE;
+}
+
 EXEC SQL BEGIN DECLARE SECTION;
 static char pubid[11];      // For all publications.
 static char title[71];      // For all publications.
@@ -148,14 +153,14 @@ static int printId()
     int err;
     typeId type;
     
-    if (err = getTitle()) goto end;
+    if ((err = getTitle())) goto end;
     printf("Pubid: %s\n", pubid);
     
     type = getType();
     printf("Type: %s\n", typeName[type]);
     
     printf("Authors: ");
-    if (err = printAuthors()) {
+    if ((err = printAuthors())) {
         printf("\n");
         goto end;
     }
@@ -179,9 +184,12 @@ static int printId()
             printf("In: %s\nPages: %d--%d\n",
                    appearsin, (int)startpage, (int)endpage);
             break;
+        default:
+            break;
     }
     
     end:
     if (err == 100) return 0;
     return err;
 }
+
