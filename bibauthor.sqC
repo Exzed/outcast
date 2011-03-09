@@ -1,247 +1,26 @@
-/*******************************************************************************
- * Declarations
- ******************************************************************************/
-
-void connect(int *err=NULL);
-void disconnect(int *err=NULL);
-
-namespace pub
-{
-    void printId(const char *id, int *err=NULL);
-}
-
-
-/*******************************************************************************
- * Main Section
- ******************************************************************************/
-
+#include "common.h"
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
-#include <list>
-EXEC SQL INCLUDE SQLCA;
-
-using namespace std;
 
 int main(int argc, char *argv[])
 {
-    int err = 0;
-    
-    connect(&err);
-    if (err) goto error;
-    
-    switch(argc) {
-        case 2:
-            pub::printId(argv[1], &err);
-            if (err) goto error;
-            break;
+    if (argc != 2) {
+        printf("Usage: %s \"AuthorName\"\n", argv[0]);
+        return 0;
+    } else if (strlen(argv[1]) > 10) {
+        printf("The author name, \"%s\" is too long.\n", argv[1]);
+        return -1;
     }
     
+    EXEC SQL WHENEVER SQLERROR GOTO end;
     
-    disconnect(&err);
-    if (err) goto error;
+    int err;
     
-    return 0;
+    if ((err = connect())) goto end;
     
-error:
-    printf("ERROR: %d\n", err);
+    if ((err = print(argv[1]))) goto end;
+    
+end:
+    err = disconnect();
     return err;
-}
-
-/*******************************************************************************
- * Library Functions
- ******************************************************************************/
-
-void connect(int *err)
-{
-    EXEC SQL WHENEVER SQLERROR GOTO error;
-    EXEC SQL CONNECT TO cs348;
-    if (err) *err = SQLCODE;
-    return;
-    
-error:
-    if (err) *err = -1;
-    return;
-}
-
-void disconnect(int *err)
-{
-    EXEC SQL WHENEVER SQLERROR GOTO error;
-    EXEC SQL CONNECT RESET;
-    if (err) *err = SQLCODE;
-    return;
-    
-error:
-    if (err) *err = -1;
-    return;
-}
-
-namespace pub
-{
-    enum typeId
-    {
-        UNKNOWN = 0,
-        BOOK = 1,
-        JOURNAL = 2,
-        PROCEEDINGS = 3,
-        ARTICLE = 4
-    };
-    
-    static const char *typeName[] =
-    {
-        "unknown",
-        "book",
-        "journal",
-        "proceedings",
-        "article"
-    };
-    
-    EXEC SQL BEGIN DECLARE SECTION;
-    static char pubid[11];      // For all publications.
-    static char title[71];      // For all publications.
-    static long year;           // For proceedings, journals and books.
-    static long volume;         // For jounals.
-    static long number;         // For proceedings, journals and books.
-    static char publisher[51];  // For books.
-    static char appearsin[11];  // For articles.
-    static long startpage;      // For articles.
-    static long endpage;        // For articles.
-    static char name[23];       // For authors.
-    EXEC SQL END DECLARE SECTION;
-    
-    static void getTitle(int *err=NULL);
-    static typeId getType(int *err=NULL);
-    static void printAuthors(int *err=NULL);
-    
-    void printId(const char *id, int *err)
-    {
-        int e = 0;
-        typeId type;
-        list<char *> authors;
-        
-        if (id == NULL) return;
-        if (strlen(id) > 10) return;
-        
-        strcpy(pubid, id);
-        
-        getTitle(&e);
-        if (e) goto end;
-        printf("Pubid: %s\n", pubid);
-        
-        type = getType(&e);
-        if (e) goto end;
-        printf("Type: %s\n", typeName[type]);
-        
-        printf("Authors: ");
-        printAuthors(&e);
-        if (e) goto end;
-        printf("\n");
-        
-        printf("Title: %s\n", title);
-        
-        switch (type) {
-            case BOOK:
-                printf("Publisher: %s\nYear: %d\n",
-                       publisher, (int)year);
-                break;
-            case JOURNAL:
-                printf("Volume: %d\nNumber: %d\nYear: %d\n",
-                       (int)volume, (int)number, (int)year);
-                break;
-            case PROCEEDINGS:
-                printf("Year: %d\n", (int)year);
-                break;
-            case ARTICLE:
-                printf("In: %s\nPages: %d--%d\n",
-                       appearsin, (int)startpage, (int)endpage);
-                break;
-        }
-        return;
-        
-    end:
-        if (err && e != 100) *err = e;
-        return;
-    }
-    
-    static void getTitle(int *err)
-    {
-        EXEC SQL WHENEVER SQLERROR GOTO end;
-        
-        EXEC SQL
-        SELECT title INTO :title 
-        FROM publication
-        WHERE pubid = :pubid;
-        
-    end:
-        if (err) *err = SQLCODE;
-    }
-    
-    static typeId getType(int *err)
-    {
-        EXEC SQL WHENEVER SQLERROR GOTO error;
-        
-        EXEC SQL
-        SELECT publisher, year
-        INTO :publisher, :year
-        FROM book
-        WHERE pubid = :pubid;
-        
-        if (SQLCODE == 0) return BOOK;
-        
-        EXEC SQL
-        SELECT volume, number, year
-        INTO :volume, :number, :year
-        FROM journal
-        WHERE pubid = :pubid;
-        
-        if (SQLCODE == 0) return JOURNAL;
-        
-        EXEC SQL
-        SELECT year INTO :year
-        FROM proceedings
-        WHERE pubid = :pubid;
-        
-        if (SQLCODE == 0) return PROCEEDINGS;
-        
-        EXEC SQL
-        SELECT appearsin, startpage, endpage
-        INTO :appearsin, :startpage, :endpage
-        FROM article
-        WHERE pubid = :pubid;
-        
-        if (SQLCODE == 0) return ARTICLE;
-        
-    error:
-        if (err) *err = SQLCODE;
-        return UNKNOWN;
-    }
-    
-    static void printAuthors(int *err)
-    {
-        EXEC SQL WHENEVER SQLERROR GOTO end;
-        
-        EXEC SQL DECLARE C_GETAUTH CURSOR FOR
-        SELECT A.name
-        FROM author A, wrote W
-        WHERE A.aid = W.aid AND W.pubid = :pubid
-        ORDER BY W.aorder ASC;
-        
-        EXEC SQL OPEN C_GETAUTH;
-        
-        // Print the first result.
-        EXEC SQL FETCH C_GETAUTH INTO :name;
-        if (SQLCODE) goto end;
-        printf("%s", name);
-        
-        // Print the rest of the results.
-        for (;;) {
-            EXEC SQL FETCH C_GETAUTH INTO :name;
-            if (SQLCODE) goto end;
-            printf(", %s", name);
-        }
-        
-    end:
-        EXEC SQL CLOSE C_GETAUTH;
-        if (err && SQLCODE != 100) *err = SQLCODE;
-    }
 }

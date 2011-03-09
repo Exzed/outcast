@@ -1,0 +1,187 @@
+#include <stdio.h>
+#include <string.h>
+
+#include "common.h"
+
+EXEC SQL INCLUDE SQLCA;
+
+int connect()
+{
+    EXEC SQL CONNECT TO cs348;
+    return SQLCODE;
+}
+
+int disconnect()
+{
+    EXEC SQL CONNECT RESET;
+    return SQLCODE;
+}
+
+EXEC SQL BEGIN DECLARE SECTION;
+static char pubid[11];      // For all publications.
+static char title[71];      // For all publications.
+static long year;           // For proceedings, journals and books.
+static long volume;         // For jounals.
+static long number;         // For proceedings, journals and books.
+static char publisher[51];  // For books.
+static char appearsin[11];  // For articles.
+static long startpage;      // For articles.
+static long endpage;        // For articles.
+static char name[23];       // For authors.
+EXEC SQL END DECLARE SECTION;
+
+static int printId();
+
+int print(const char *id)
+{
+    if (strlen(id) > 10) return -1;
+    strcpy(pubid, id);
+    return printId();
+}
+
+/*******************************************************************************
+ * Static (Private) Functions
+ ******************************************************************************/
+
+enum typeId
+{
+    UNKNOWN = 0,
+    BOOK = 1,
+    JOURNAL = 2,
+    PROCEEDINGS = 3,
+    ARTICLE = 4
+};
+
+static const char *typeName[] =
+{
+    "unknown",
+    "book",
+    "journal",
+    "proceedings",
+    "article"
+};
+
+static int getTitle()
+{
+    EXEC SQL WHENEVER SQLERROR GOTO end;
+    
+    EXEC SQL
+    SELECT title INTO :title 
+    FROM publication
+    WHERE pubid = :pubid;
+    
+    end:
+    return SQLCODE;
+}
+
+static typeId getType()
+{
+    EXEC SQL WHENEVER SQLERROR GOTO error;
+    
+    EXEC SQL
+    SELECT publisher, year
+    INTO :publisher, :year
+    FROM book
+    WHERE pubid = :pubid;
+    
+    if (SQLCODE == 0) return BOOK;
+    
+    EXEC SQL
+    SELECT volume, number, year
+    INTO :volume, :number, :year
+    FROM journal
+    WHERE pubid = :pubid;
+    
+    if (SQLCODE == 0) return JOURNAL;
+    
+    EXEC SQL
+    SELECT year INTO :year
+    FROM proceedings
+    WHERE pubid = :pubid;
+    
+    if (SQLCODE == 0) return PROCEEDINGS;
+    
+    EXEC SQL
+    SELECT appearsin, startpage, endpage
+    INTO :appearsin, :startpage, :endpage
+    FROM article
+    WHERE pubid = :pubid;
+    
+    if (SQLCODE == 0) return ARTICLE;
+    
+    error:
+    return UNKNOWN;
+}
+
+static int printAuthors()
+{
+    EXEC SQL WHENEVER SQLERROR GOTO end;
+    
+    EXEC SQL DECLARE C_GETAUTH CURSOR FOR
+    SELECT A.name
+    FROM author A, wrote W
+    WHERE A.aid = W.aid AND W.pubid = :pubid
+    ORDER BY W.aorder ASC;
+    
+    EXEC SQL OPEN C_GETAUTH;
+    
+    // Print the first result.
+    EXEC SQL FETCH C_GETAUTH INTO :name;
+    if (SQLCODE) goto end;
+    printf("%s", name);
+    
+    // Print the rest of the results.
+    for (;;) {
+        EXEC SQL FETCH C_GETAUTH INTO :name;
+        if (SQLCODE) goto end;
+        printf(", %s", name);
+    }
+    
+    end:
+    EXEC SQL CLOSE C_GETAUTH;
+    if (SQLCODE == 100) return 0;
+    return SQLCODE;
+}
+
+static int printId()
+{
+    int err;
+    typeId type;
+    
+    if (err = getTitle()) goto end;
+    printf("Pubid: %s\n", pubid);
+    
+    type = getType();
+    printf("Type: %s\n", typeName[type]);
+    
+    printf("Authors: ");
+    if (err = printAuthors()) {
+        printf("\n");
+        goto end;
+    }
+    printf("\n");
+    
+    printf("Title: %s\n", title);
+    
+    switch (type) {
+        case BOOK:
+            printf("Publisher: %s\nYear: %d\n",
+                   publisher, (int)year);
+            break;
+        case JOURNAL:
+            printf("Volume: %d\nNumber: %d\nYear: %d\n",
+                   (int)volume, (int)number, (int)year);
+            break;
+        case PROCEEDINGS:
+            printf("Year: %d\n", (int)year);
+            break;
+        case ARTICLE:
+            printf("In: %s\nPages: %d--%d\n",
+                   appearsin, (int)startpage, (int)endpage);
+            break;
+    }
+    
+    end:
+    if (err == 100) return 0;
+    return err;
+}
