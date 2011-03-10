@@ -56,9 +56,9 @@ int main()
 		strcpy(strUpdate, strTemp.c_str());
 		char *updateType = strtok(strUpdate, "(");
 		
-        if (strcmp(updateType, "author") || strcmp(updateType, "authorurl")){
+        if (strcmp(updateType, "author") || strcmp(updateType, "authorurl")) {
 			
-			aid = strtol(strtok(NULL, "#")), NULL, 0);
+			aid = strtol(strtok(NULL, "#"), NULL, 0);
 			
 			EXEC SQL
 			SELECT name
