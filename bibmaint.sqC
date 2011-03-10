@@ -7,7 +7,7 @@ EXEC SQL INCLUDE SQLCA;
 using namespace std;
 
 
-void addAuthors(string, char *);
+void addAuthors(char[1024], char *);
 
 int connect()
 {
@@ -93,7 +93,7 @@ int main()
 			}
 		}
 		else {
-			string authors;
+			char authors[1024];
 
 			EXEC SQL
 			SELECT title
@@ -244,18 +244,16 @@ int main()
 }
 
 
-void addAuthors(string authors, char * pbid){
+void addAuthors(char[1024] authors, char * pbid){
 	
-	char *authorsList, *authorPtr;
+	char *authorPtr;
 	
-	authorsList = new char[authors.length() + 1];
-	strcpy(authorsList, authors.c_str());
     strcpy(pubid, pbid);
 	
 	EXEC SQL DELETE FROM WROTE WHERE pubid = :pubid;
     
 	aorder = 1;
-    authorPtr = strtok(authorsList, ";");
+    authorPtr = strtok(authors, ";");
 	
 	while (authorPtr != NULL){
 		aid = strtol(authorPtr, NULL, 0);
