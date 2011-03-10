@@ -1,0 +1,16 @@
+Mark West	20293731
+Sky Zhu		20298637
+
+Submitted by user 2029
+
+Mark- setup database, bibmaint
+Sky- print function, bibauthor, bibcontent, makefile
+
+
+
+
+
+Bibmaint first tokenizes the identifier to determine what type of data to update or insert.
+It then gets the pubid or aid, and queries the publication or author table to see if the data is present
+Next, it parses the rest of the input, and does an insert or update to the correct table.
+For publications, the new or updated record is printed similarly to bibcontent.
