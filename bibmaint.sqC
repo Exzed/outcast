@@ -96,6 +96,7 @@ int main()
 		}
 		else {
 			char *authors;
+			strcpy(pubid, strtok(NULL, ")"));
 
 			EXEC SQL
 			SELECT title
