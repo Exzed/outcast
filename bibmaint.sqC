@@ -217,7 +217,6 @@ void addAuthors(string authors, char *pbid) {
 
 	
     while(first >= 0){
-		cout<<authors.substr(first, next-first)<< " " << first << " to " <<next-1 <<endl;
         aid = strtol(authors.substr(first, next-first).c_str(), NULL, 0);
         EXEC SQL INSERT INTO WROTE
         VALUES (:aid, :pubid, :aorder);
