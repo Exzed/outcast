@@ -7,7 +7,7 @@
 using namespace std;
 
 
-void addAuthors(char[1024], char *);
+void addAuthors(char*, char *);
 
 
 EXEC SQL BEGIN DECLARE SECTION;
