@@ -48,7 +48,6 @@ int main()
 				char url[43];
 			EXEC SQL END DECLARE SECTION ;
 			
-			
 			aid = strtol(strtok(NULL, "#"), NULL, 0);
 			
 			EXEC SQL
@@ -57,19 +56,17 @@ int main()
 			FROM AUTHOR
 			WHERE aid = :aid;
 			
-			
-			
-			if ( SQLCODE == 100){
+			if (SQLCODE == 100){
 				//insert
 				if(strcmp(updateType, "author")){
-					name = *(strtok(NULL, ")"));
+                    strcpy(name, strtok(NULL, ")"));
 					
 					EXEC SQL INSERT INTO AUTHOR (aid, name)
 					VALUES (:aid, :name);
 				}
 			} else {
 				if (strcmp(updateType, "author")){
-					name =*(strtok(NULL, ")"));
+					name = *(strtok(NULL, ")"));
 					
 					EXEC SQL UPDATE AUTHOR
 					SET name = :name
