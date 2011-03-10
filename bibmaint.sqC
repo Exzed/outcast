@@ -56,9 +56,9 @@ int main()
 		strcpy(strUpdate, strTemp.c_str());
 		char *updateType = strtok(strUpdate, "(");
 		
-        if (strcmp(updateType, "author") || strcmp(updateType, "authorurl")){
+        if (strcmp(updateType, "author") || strcmp(updateType, "authorurl")) {
 			
-			aid = strtol(strtok(NULL, "#")), NULL, 0);
+			aid = strtol(strtok(NULL, "#"), NULL, 0);
 			
 			EXEC SQL
 			SELECT name
@@ -118,7 +118,7 @@ int main()
 					
 					addAuthors(authors, pubid);
 				
-				} else if (strcmp(updateType, "journal"){
+				} else if (strcmp(updateType, "journal")) {
 					strcpy(pubid, strtok(NULL, "#"));
 					strcpy(title, strtok(NULL, "#"));
 					volume = strtol(strtok(NULL, "#"), NULL, 0);
@@ -131,7 +131,7 @@ int main()
 					EXEC SQL INSERT INTO JOURNAL
 					VALUES (:pubid, :volume, :number, :year);
 				
-				} else if (strcmp(updateType, "proceedings"){
+				} else if (strcmp(updateType, "proceedings")) {
 					strcpy(pubid, strtok(NULL, "#"));
 					strcpy(title, strtok(NULL, "#"));
 					year = strtol(strtok(NULL, ")"), NULL, 0);
@@ -196,7 +196,7 @@ int main()
 					year = :year
 					WHERE pubid = :pubid;
 				
-				} else if (strcmp(updateType, "proceedings"){
+				} else if (strcmp(updateType, "proceedings")) {
 					strcpy(pubid, strtok(NULL, "#"));
 					strcpy(title, strtok(NULL, "#"));
 					year = strtol(strtok(NULL, ")"), NULL, 0);
@@ -229,7 +229,7 @@ int main()
 					
 					addAuthors(authors, pubid);
 				}
-			}	
+			}
 			delete[] strUpdate;
 			//print(pubid);
 		}
@@ -261,7 +261,7 @@ void addAuthors(char[1024] authors, char * pbid){
 		VALUES (:aid, :pubid, :aorder);
 		
 		aorder++;
-		strcpy(authorPtr, strtok(NULL, ";");
+		strcpy(authorPtr, strtok(NULL, ";"));
 		
 	}
 	
