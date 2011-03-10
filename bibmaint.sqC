@@ -93,7 +93,7 @@ int main()
 			}
 		}
 		else {
-			char authors[1024];
+			char *authors;
 
 			EXEC SQL
 			SELECT title
@@ -106,7 +106,7 @@ int main()
 				if (strcmp(updateType, "book")){
 					strcpy(pubid, strtok(NULL, "#"));
 					strcpy(title, strtok(NULL, "#"));
-					strcpy(authors, strtok(NULL, "#"));
+					authors = strtok(NULL, "#");
 					strcpy(publisher, strtok(NULL, "#"));
 					year = strtol(strtok(NULL, ")"), NULL, 0);
 					
@@ -145,7 +145,7 @@ int main()
 				} else { //article
 					strcpy(pubid, strtok(NULL, "#"));
 					strcpy(title, strtok(NULL, "#"));
-					strcpy(authors, strtok(NULL, "#"));
+					authors = strtok(NULL, "#");
 					strcpy(appearsin, strtok(NULL, "#"));
 					startpage = strtol(strtok(NULL, "#"), NULL, 0);
 					endpage = strtol(strtok(NULL, ")"), NULL, 0);
@@ -164,7 +164,7 @@ int main()
 				if (strcmp(updateType, "book")){
 					strcpy(pubid, strtok(NULL, "#"));
 					strcpy(title, strtok(NULL, "#"));
-					strcpy(authors, strtok(NULL, "#"));
+					authors = strtok(NULL, "#");
 					strcpy(publisher, strtok(NULL, "#"));
 					year = strtol(strtok(NULL, ")"), NULL, 0);
 					
@@ -212,7 +212,7 @@ int main()
 				} else { //article
 					strcpy(pubid, strtok(NULL, "#"));
 					strcpy(title, strtok(NULL, "#"));
-					strcpy(authors, strtok(NULL, "#"));
+					authors = strtok(NULL, "#");
 					strcpy(appearsin, strtok(NULL, "#"));
 					startpage = strtol(strtok(NULL, "#"), NULL, 0);
 					endpage = strtol(strtok(NULL, ")"), NULL, 0);
@@ -244,7 +244,7 @@ int main()
 }
 
 
-void addAuthors(char[1024], authors, char * pbid){
+void addAuthors(char *authors, char *pbid) {
 	
 	char *authorPtr;
 	
@@ -264,5 +264,7 @@ void addAuthors(char[1024], authors, char * pbid){
 		strcpy(authorPtr, strtok(NULL, ";"));
 		
 	}
-
+	
+	error:
+	return;
 }
