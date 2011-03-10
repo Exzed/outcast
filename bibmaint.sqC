@@ -35,16 +35,13 @@ int main()
 	
 		string strTemp = "";
 		getline(cin, strTemp);
+        if (cin.eof()) return 0;
 		
-		char * strUpdate;
-		strUpdate =  new char(strTemp.length() + 1);
-		strcpy(strUpdate, strTemp);
-		char * updateType;
-		updateType = strtok (strUpdate, "(");
-		if (strcmp(updateType, "quit")){
-			return 0;
-		}
-		else if (strcmp(updateType, "author") || strcmp(updateType, "authorurl")){
+		char *strUpdate = new char[strTemp.length() + 1];
+		strcpy(strUpdate, strTemp.c_str());
+		char *updateType = strtok(strUpdate, "(");
+		
+        if (strcmp(updateType, "author") || strcmp(updateType, "authorurl")){
 			EXEC SQL BEGIN DECLARE SECTION ;
 				long aid;
 				char name[23];
