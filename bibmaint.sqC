@@ -58,7 +58,6 @@ int main()
 		char *strUpdate = new char[strTemp.length() + 1];
 		strcpy(strUpdate, strTemp.c_str());
 		char *updateType = strtok(strUpdate, "(");
-		cout<<updateType<<"\n";
 		
         if (!strcmp(updateType, "author") || !strcmp(updateType, "authorurl")) {
 			
@@ -74,25 +73,18 @@ int main()
 				//insert
 				if(!strcmp(updateType, "author")){
                     strcpy(name, strtok(NULL, ")"));
-					cout<<"adding new author\n";
 					EXEC SQL INSERT INTO AUTHOR (aid, name)
 					VALUES (:aid, :name);
-				}
-				else {
-					cout<< "shouldn't be adding url without author id present\n";
 				}
 			} else {
 				if (!strcmp(updateType, "author")){
 					strcpy(name, strtok(NULL, ")"));
-					cout<<"change author name\n";
 					
 					EXEC SQL UPDATE AUTHOR
 					SET name = :name
 					WHERE aid = :aid;
 				} else { //url
 					strcpy(url, strtok(NULL, ")"));
-					
-					cout<< "change author webpage\n";
 					
 					EXEC SQL UPDATE AUTHOR
 					SET url = :url
