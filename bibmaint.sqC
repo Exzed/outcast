@@ -6,7 +6,10 @@
 
 using namespace std;
 
-void addAuthors(char*, char *);
+
+//void addAuthors(char*, char *);
+void addAuthors(string, char *);
+
 
 EXEC SQL BEGIN DECLARE SECTION;
 char pubid[11];
@@ -41,7 +44,7 @@ int main()
         char *strUpdate = strdup(strTemp.c_str());
         char *updateType = strtok(strUpdate, "(");
         
-        if (strcmp(updateType, "author") || strcmp(updateType, "authorurl")) {
+        if (!strcmp(updateType, "author") || !strcmp(updateType, "authorurl")) {
             
             aid = strtol(strtok(NULL, "#"), NULL, 0);
             
@@ -53,14 +56,14 @@ int main()
             
             if (sqlcode() == 100){
                 //insert
-                if(strcmp(updateType, "author")){
+                if(!strcmp(updateType, "author")){
                     strcpy(name, strtok(NULL, ")"));
                     
                     EXEC SQL INSERT INTO AUTHOR (aid, name)
                     VALUES (:aid, :name);
                 }
             } else {
-                if (strcmp(updateType, "author")){
+                if (!strcmp(updateType, "author")){
                     strcpy(name, strtok(NULL, ")"));
                     
                     EXEC SQL UPDATE AUTHOR
@@ -75,10 +78,9 @@ int main()
                 }
             }
         } else {
-            char *authors;
-            
-            strcpy(pubid, strtok(NULL, ")"));
-
+            //char authors [500];
+            string authors;
+            strcpy(pubid, strtok(NULL, "#"));
             EXEC SQL
             SELECT title
             INTO :title
@@ -86,40 +88,32 @@ int main()
             WHERE pubid = :pubid;
                 
             if (sqlcode() == 100){
-            
-                if (strcmp(updateType, "book")){
+                if (!strcmp(updateType, "book")){
                     strcpy(title, strtok(NULL, "#"));
-                    authors = strtok(NULL, "#");
+					authors = strtok(NULL, "#");
                     strcpy(publisher, strtok(NULL, "#"));
                     year = strtol(strtok(NULL, ")"), NULL, 0);
-                    
                     EXEC SQL INSERT INTO PUBLICATION 
                     VALUES (:pubid, :title);
-                    
                     EXEC SQL INSERT INTO BOOK
-                    VALUES (:pubid, :publisher, :year);
-                    
+                    VALUES (:pubid, 'pub', 17);
                     addAuthors(authors, pubid);
                 
-                } else if (strcmp(updateType, "journal")) {
+                } else if (!strcmp(updateType, "journal")) {
                     strcpy(title, strtok(NULL, "#"));
                     volume = strtol(strtok(NULL, "#"), NULL, 0);
                     number = strtol(strtok(NULL, "#"), NULL, 0);
                     year = strtol(strtok(NULL, ")"), NULL, 0);
-                    
                     EXEC SQL INSERT INTO PUBLICATION 
                     VALUES (:pubid, :title);
-                    
                     EXEC SQL INSERT INTO JOURNAL
                     VALUES (:pubid, :volume, :number, :year);
                 
-                } else if (strcmp(updateType, "proceedings")) {
+                } else if (!strcmp(updateType, "proceedings")) {
                     strcpy(title, strtok(NULL, "#"));
                     year = strtol(strtok(NULL, ")"), NULL, 0);
-                    
                     EXEC SQL INSERT INTO PUBLICATION 
                     VALUES (:pubid, :title);
-                    
                     EXEC SQL INSERT INTO PROCEEDINGS
                     VALUES (:pubid, :year);
                 
@@ -129,66 +123,55 @@ int main()
                     strcpy(appearsin, strtok(NULL, "#"));
                     startpage = strtol(strtok(NULL, "#"), NULL, 0);
                     endpage = strtol(strtok(NULL, ")"), NULL, 0);
-                    
                     EXEC SQL INSERT INTO PUBLICATION 
                     VALUES (:pubid, :title);
-                    
                     EXEC SQL INSERT INTO ARTICLE
                     VALUES (:pubid, :appearsin, :startpage, :endpage);
-                    
                     addAuthors(authors, pubid);
                 }
                 
             } else {
-            
-                if (strcmp(updateType, "book")){
+                if (!strcmp(updateType, "book")){
                     strcpy(title, strtok(NULL, "#"));
                     authors = strtok(NULL, "#");
                     strcpy(publisher, strtok(NULL, "#"));
                     year = strtol(strtok(NULL, ")"), NULL, 0);
-                    
                     EXEC SQL UPDATE PUBLICATION 
                     SET title = :title
                     WHERE pubid = :pubid;
-                    
                     EXEC SQL UPDATE BOOK 
                     SET publisher = :publisher,
                     year = :year
                     WHERE pubid = :pubid;
-                    
-                    addAuthors(authors, pubid);
+					addAuthors(authors, pubid);
                 
-                } else if (strcmp(updateType, "journal")){
+                } else if (!strcmp(updateType, "journal")){
                     strcpy(title, strtok(NULL, "#"));
                     volume = strtol(strtok(NULL, "#"), NULL, 0);
                     number = strtol(strtok(NULL, "#"), NULL, 0);
                     year = strtol(strtok(NULL, ")"), NULL, 0);
-                    
                     EXEC SQL UPDATE PUBLICATION 
                     SET title = :title
                     WHERE pubid = :pubid;
-                    
                     EXEC SQL UPDATE JOURNAL 
                     SET volume = :volume,
                     number = :number,
                     year = :year
                     WHERE pubid = :pubid;
                 
-                } else if (strcmp(updateType, "proceedings")) {
+                } else if (!strcmp(updateType, "proceedings")) {
                     strcpy(title, strtok(NULL, "#"));
                     year = strtol(strtok(NULL, ")"), NULL, 0);
-                    
                     EXEC SQL UPDATE PUBLICATION
                     SET title = :title
                     WHERE pubid = :pubid;
-                    
                     EXEC SQL UPDATE PROCEEDINGS
                     SET year = :year
                     WHERE pubid = :pubid;
                 
                 } else { //article
                     strcpy(title, strtok(NULL, "#"));
-                    authors = strtok(NULL, "#");
+					authors = strtok(NULL, "#");
                     strcpy(appearsin, strtok(NULL, "#"));
                     startpage = strtol(strtok(NULL, "#"), NULL, 0);
                     endpage = strtol(strtok(NULL, ")"), NULL, 0);
@@ -202,8 +185,7 @@ int main()
                     startpage = :startpage,
                     endpage = :endpage
                     WHERE pubid = :pubid;
-                    
-                    addAuthors(authors, pubid);
+					addAuthors(authors, pubid);
                 }
             }
             delete[] strUpdate;
@@ -220,29 +202,32 @@ int main()
 }
 
 
-void addAuthors(char *authors, char *pbid) {
-    
-    char *authorPtr;
+//void addAuthors(char *authors, char *pbid) {
+void addAuthors(string authors, char *pbid) { 
     
     strcpy(pubid, pbid);
-    
+	int first = 0;
+	int next = authors.find(";",first);
     EXEC SQL WHENEVER SQLERROR GOTO error;
     
     EXEC SQL DELETE FROM WROTE WHERE pubid = :pubid;
-    
+	
+	//strcpy(newAuthors, authors);
     aorder = 1;
-    authorPtr = strtok(authors, ";");
-    
-    while (authorPtr != NULL){
-        aid = strtol(authorPtr, NULL, 0);
+
+	
+    while(first >= 0){
+		cout<<authors.substr(first, next-first)<< " " << first << " to " <<next-1 <<endl;
+        aid = strtol(authors.substr(first, next-first).c_str(), NULL, 0);
         EXEC SQL INSERT INTO WROTE
         VALUES (:aid, :pubid, :aorder);
         
         aorder++;
-        strcpy(authorPtr, strtok(NULL, ";"));
+        first = next +1;
+		next = authors.find(";", first);
         
     }
-    
-    error:
+	
+	error:
     return;
 }
