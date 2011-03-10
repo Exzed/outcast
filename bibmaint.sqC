@@ -244,7 +244,7 @@ int main()
 }
 
 
-void addAuthors(char[1024] authors, char * pbid){
+void addAuthors(char[1024], authors, char * pbid){
 	
 	char *authorPtr;
 	
