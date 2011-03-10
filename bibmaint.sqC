@@ -121,8 +121,8 @@ int main()
 				} else if (strcmp(updateType, "journal"){
 					strcpy(pubid, strtok(NULL, "#"));
 					strcpy(title, strtok(NULL, "#"));
-					volume = strtol(strtok(NULL, "#")), NULL, 0);
-					number = strtol(strtok(NULL, "#")), NULL, 0);
+					volume = strtol(strtok(NULL, "#"), NULL, 0);
+					number = strtol(strtok(NULL, "#"), NULL, 0);
 					year = strtol(strtok(NULL, ")"), NULL, 0);
 					
 					EXEC SQL INSERT INTO PUBLICATION 
@@ -147,7 +147,7 @@ int main()
 					strcpy(title, strtok(NULL, "#"));
 					strcpy(authors, strtok(NULL, "#"));
 					strcpy(appearsin, strtok(NULL, "#"));
-					startpage = strtol(strtok(NULL, "#")), NULL, 0);
+					startpage = strtol(strtok(NULL, "#"), NULL, 0);
 					endpage = strtol(strtok(NULL, ")"), NULL, 0);
 					
 					EXEC SQL INSERT INTO PUBLICATION 
@@ -182,8 +182,8 @@ int main()
 				} else if (strcmp(updateType, "journal")){
 					strcpy(pubid, strtok(NULL, "#"));
 					strcpy(title, strtok(NULL, "#"));
-					volume = strtol(strtok(NULL, "#")), NULL, 0);
-					number = strtol(strtok(NULL, "#")), NULL, 0);
+					volume = strtol(strtok(NULL, "#"), NULL, 0);
+					number = strtol(strtok(NULL, "#"), NULL, 0);
 					year = strtol(strtok(NULL, ")"), NULL, 0);
 					
 					EXEC SQL UPDATE PUBLICATION 
@@ -214,7 +214,7 @@ int main()
 					strcpy(title, strtok(NULL, "#"));
 					strcpy(authors, strtok(NULL, "#"));
 					strcpy(appearsin, strtok(NULL, "#"));
-					startpage = strtol(strtok(NULL, "#")), NULL, 0);
+					startpage = strtol(strtok(NULL, "#"), NULL, 0);
 					endpage = strtol(strtok(NULL, ")"), NULL, 0);
 					
 					EXEC SQL UPDATE PUBLICATION 
@@ -263,7 +263,7 @@ void addAuthors(string authors, char * pbid){
 		VALUES (:aid, :pubid, :aorder);
 		
 		aorder++;
-		authorPtr, strtok(NULL, ";");
+		strcpy(authorPtr, strtok(NULL, ";");
 		
 	}
 	
