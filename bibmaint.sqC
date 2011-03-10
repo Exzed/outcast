@@ -6,9 +6,7 @@
 
 using namespace std;
 
-
 void addAuthors(char*, char *);
-
 
 EXEC SQL BEGIN DECLARE SECTION;
 char pubid[11];
@@ -33,7 +31,6 @@ int main()
     
     if ((err = connect())) goto error;    
     cout << "Connected to database." << endl;
-<<<<<<< HEAD
     
     while(true){
     
