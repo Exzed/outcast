@@ -6,11 +6,10 @@ Submitted by user 2029
 Mark- setup database, bibmaint
 Sky- print function, bibauthor, bibcontent, makefile
 
+A print(pubid) function is used to print the information for each publication. First it finds the general publication information. It then proceeds to find the type of publication by looking in each of the tables: book, article, proceedings and journal. The list of authors is then found and printed. And finally, the type-specific information about the publication is printed.
 
+Bibauthor uses a SQL query to find a list of publications that either the author wrote or is an article that references a publication that the author wrote. It then uses the print function to print the information for each.
 
+Bibcontent uses a SQL query to find a list of articles that appear in the given publication. Information about each article is then printed using the print function.
 
-
-Bibmaint first tokenizes the identifier to determine what type of data to update or insert.
-It then gets the pubid or aid, and queries the publication or author table to see if the data is present
-Next, it parses the rest of the input, and does an insert or update to the correct table.
-For publications, the new or updated record is printed similarly to bibcontent.
+Bibmaint first tokenizes the identifier to determine what type of data to update or insert. It then gets the pubid or aid, and queries the publication or author table to see if the data is present. Next, it parses the rest of the input, and does an insert or update to the correct table. For publications, the new or updated record is printed similarly to bibcontent. 
