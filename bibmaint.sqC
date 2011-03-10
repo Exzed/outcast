@@ -20,8 +20,23 @@ int disconnect()
     EXEC SQL CONNECT RESET;
     return SQLCODE;
 }
-	
 
+
+EXEC SQL BEGIN DECLARE SECTION;
+char pubid[11];
+char title[71];
+char publisher[51];
+long year;
+long volume;
+long number;
+char appearsin[10];
+long startpage;
+long endpage;
+long aid;
+char name[23];
+char url[43];
+long aorder;
+EXEC SQL END DECLARE SECTION;
 
 int main()
 {
@@ -42,11 +57,6 @@ int main()
 		char *updateType = strtok(strUpdate, "(");
 		
         if (strcmp(updateType, "author") || strcmp(updateType, "authorurl")){
-			EXEC SQL BEGIN DECLARE SECTION ;
-				long aid;
-				char name[23];
-				char url[43];
-			EXEC SQL END DECLARE SECTION ;
 			
 			aid = strtol(strtok(NULL, "#"), NULL, 0);
 			
@@ -83,17 +93,6 @@ int main()
 			}
 		}
 		else {
-			EXEC SQL BEGIN DECLARE SECTION ;
-				char pubid[11];
-				char title[71];
-				char publisher[51];
-				long year;
-				long volume;
-				long number;
-				char appearsin[10];
-				long startpage;
-				long endpage;
-			EXEC SQL END DECLARE SECTION ;
 			string authors;
 
 			EXEC SQL
@@ -102,7 +101,7 @@ int main()
 			FROM PUBLICATION
 			WHERE pubid = :pubid;
 				
-			if ( SQLCODE == 100){
+			if (SQLCODE == 100){
 			
 				if (strcmp(updateType, "book")){
 					pubid = strtok(NULL, "#");
@@ -246,20 +245,17 @@ int main()
 
 
 void addAuthors(string authors, char * pbid){
-	EXEC SQL BEGIN DECLARE SECTION ;
-	long aorder;
-	EXEC SQL END DECLARE SECTION ;
 	
-	char * authorsList;
-	authorsList = new char(authors.length() + 1);
-	strcpy(authorsList, authors);
-	pubid = pbid;
+	char *authorsList, *authorPtr;
 	
-	EXEC SQL DELETE FROM WROTE
-		WHERE pubid = :pubid;
-	char * authorPtr;
+	authorsList = new char[authors.length() + 1];
+	strcpy(authorsList, authors.c_str());
+    strcpy(pubid, pbid);
+	
+	EXEC SQL DELETE FROM WROTE WHERE pubid = :pubid;
+    
 	aorder = 1;
-	authorPtr = strtok(authorsList, ";");
+    authorPtr = strtok(authorsList, ";");
 	
 	while (authorPtr != NULL){
 		aid = strtol(authorPtr, NULL, 0);
@@ -271,6 +267,6 @@ void addAuthors(string authors, char * pbid){
 		
 	}
 	
+	error:
 	delete[] authorsList;
-	return;
 }
