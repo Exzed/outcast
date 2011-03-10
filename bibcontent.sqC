@@ -30,11 +30,11 @@ int main(int argc, char *argv[])
     ORDER BY startpage ASC;
     
     EXEC SQL OPEN C_BIBCONTENT;
+    
     // Print the first result.
     EXEC SQL FETCH C_BIBCONTENT INTO :pubid;
     if ((err = sqlcode())) goto end;
     if ((err = print(pubid))) goto end;
-    
     
     // Print the rest of the results.
     for (;;) {

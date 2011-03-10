@@ -51,11 +51,11 @@ int main(int argc, char *argv[])
     SELECT pubid FROM authored ORDER BY first ASC;
     
     EXEC SQL OPEN C_BIBAUTHOR;
+    
     // Print the first result.
     EXEC SQL FETCH C_BIBAUTHOR INTO :pubid;
     if ((err = sqlcode())) goto end;
     if ((err = print(pubid))) goto end;
-    
     
     // Print the rest of the results.
     for (;;) {
