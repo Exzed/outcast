@@ -180,7 +180,7 @@ int main()
 					WHERE pubid = :pubid;
 					
 					EXEC SQL UPDATE BOOK 
-					SET publisher = :publisher
+					SET publisher = :publisher,
 					year = :year
 					WHERE pubid = :pubid;
 					
@@ -198,8 +198,8 @@ int main()
 					WHERE pubid = :pubid;
 					
 					EXEC SQL UPDATE JOURNAL 
-					SET volume = :volume
-					number = :number
+					SET volume = :volume,
+					number = :number,
 					year = :year
 					WHERE pubid = :pubid;
 				
@@ -229,8 +229,8 @@ int main()
 					WHERE pubid = :pubid;
 					
 					EXEC SQL UPDATE ARTICLE 
-					SET appearsin = :appearsin
-					startpage = :startpage
+					SET appearsin = :appearsin,
+					startpage = :startpage,
 					endpage = :endpage
 					WHERE pubid = :pubid;
 					
