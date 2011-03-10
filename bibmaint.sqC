@@ -264,7 +264,5 @@ void addAuthors(char[1024], authors, char * pbid){
 		strcpy(authorPtr, strtok(NULL, ";"));
 		
 	}
-	
-	error:
-	delete[] authorsList;
+
 }
