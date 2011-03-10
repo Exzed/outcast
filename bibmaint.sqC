@@ -103,7 +103,8 @@ int main()
 			string authors;
 
 			EXEC SQL
-			SELECT pubid 
+			SELECT title
+			INTO :title
 			FROM PUBLICATION
 			WHERE pubid = :pubid;
 				
